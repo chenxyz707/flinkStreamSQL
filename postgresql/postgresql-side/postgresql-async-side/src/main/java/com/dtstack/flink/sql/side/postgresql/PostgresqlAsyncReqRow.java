@@ -24,6 +24,7 @@ import com.dtstack.flink.sql.side.JoinInfo;
 import com.dtstack.flink.sql.side.SideTableInfo;
 import com.dtstack.flink.sql.side.rdb.async.RdbAsyncReqRow;
 import com.dtstack.flink.sql.side.rdb.table.RdbSideTableInfo;
+import com.dtstack.flink.sql.util.VertxUtils;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
@@ -48,6 +49,8 @@ public class PostgresqlAsyncReqRow extends RdbAsyncReqRow {
 
     private final static String POSTGRESQL_DRIVER = "org.postgresql.Driver";
 
+    private Vertx vertx;
+
     public PostgresqlAsyncReqRow(RowTypeInfo rowTypeInfo, JoinInfo joinInfo, List<FieldInfo> outFieldInfoList, SideTableInfo sideTableInfo) {
         super(new PostgresqlAsyncSideInfo(rowTypeInfo, joinInfo, outFieldInfoList, sideTableInfo));
     }
@@ -67,8 +70,13 @@ public class PostgresqlAsyncReqRow extends RdbAsyncReqRow {
         VertxOptions vo = new VertxOptions();
         vo.setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE);
         vo.setWorkerPoolSize(DEFAULT_VERTX_WORKER_POOL_SIZE);
-        Vertx vertx = Vertx.vertx(vo);
+        vertx = Vertx.vertx(vo);
         setRdbSQLClient(JDBCClient.createNonShared(vertx, pgClientConfig));
     }
 
+    @Override
+    public void close() throws Exception {
+        super.close();
+        VertxUtils.synClose(vertx);
+    }
 }

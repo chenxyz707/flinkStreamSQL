@@ -18,6 +18,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.package.name>core</project.package.name>
         <calcite.server.version>1.16.0</calcite.server.version>
+        <vertx.version>3.5.2</vertx.version>
     </properties>
 
     <dependencies>
@@ -93,6 +94,12 @@
             <groupId>org.apache.flink</groupId>
             <artifactId>flink-yarn_2.11</artifactId>
             <version>${flink.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.vertx</groupId>
+            <artifactId>vertx-core</artifactId>
+            <version>${vertx.version}</version>
         </dependency>
     </dependencies>
 

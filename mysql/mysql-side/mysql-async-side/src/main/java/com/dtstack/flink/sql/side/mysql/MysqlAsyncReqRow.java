@@ -24,6 +24,7 @@ import com.dtstack.flink.sql.side.JoinInfo;
 import com.dtstack.flink.sql.side.SideTableInfo;
 import com.dtstack.flink.sql.side.rdb.async.RdbAsyncReqRow;
 import com.dtstack.flink.sql.side.rdb.table.RdbSideTableInfo;
+import com.dtstack.flink.sql.util.VertxUtils;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
@@ -48,6 +49,8 @@ public class MysqlAsyncReqRow extends RdbAsyncReqRow {
     private static final Logger LOG = LoggerFactory.getLogger(MysqlAsyncReqRow.class);
 
     private final static String MYSQL_DRIVER = "com.mysql.jdbc.Driver";
+
+    private Vertx vertx;
 
     public MysqlAsyncReqRow(RowTypeInfo rowTypeInfo, JoinInfo joinInfo, List<FieldInfo> outFieldInfoList, SideTableInfo sideTableInfo) {
         super(new MysqlAsyncSideInfo(rowTypeInfo, joinInfo, outFieldInfoList, sideTableInfo));
@@ -75,8 +78,13 @@ public class MysqlAsyncReqRow extends RdbAsyncReqRow {
         vo.setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE);
         vo.setWorkerPoolSize(DEFAULT_VERTX_WORKER_POOL_SIZE);
         vo.setFileResolverCachingEnabled(false);
-        Vertx vertx = Vertx.vertx(vo);
+        vertx = Vertx.vertx(vo);
         setRdbSQLClient(JDBCClient.createNonShared(vertx, mysqlClientConfig));
     }
 
+    @Override
+    public void close() throws Exception {
+        super.close();
+        VertxUtils.synClose(vertx);
+    }
 }

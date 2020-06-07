@@ -24,6 +24,7 @@ import com.dtstack.flink.sql.side.JoinInfo;
 import com.dtstack.flink.sql.side.SideTableInfo;
 import com.dtstack.flink.sql.side.rdb.async.RdbAsyncReqRow;
 import com.dtstack.flink.sql.side.rdb.table.RdbSideTableInfo;
+import com.dtstack.flink.sql.util.VertxUtils;
 import io.vertx.core.Vertx;
 import io.vertx.core.VertxOptions;
 import io.vertx.core.json.JsonObject;
@@ -36,6 +37,8 @@ import java.util.List;
 
 public class ClickhouseAsyncReqRow extends RdbAsyncReqRow {
     private static final String CLICKHOUSE_DRIVER = "ru.yandex.clickhouse.ClickHouseDriver";
+
+    private Vertx vertx;
 
     public ClickhouseAsyncReqRow(RowTypeInfo rowTypeInfo, JoinInfo joinInfo, List<FieldInfo> outFieldInfoList, SideTableInfo sideTableInfo) {
         super(new ClickhouseAsyncSideInfo(rowTypeInfo, joinInfo, outFieldInfoList, sideTableInfo));
@@ -57,8 +60,13 @@ public class ClickhouseAsyncReqRow extends RdbAsyncReqRow {
         vo.setEventLoopPoolSize(DEFAULT_VERTX_EVENT_LOOP_POOL_SIZE);
         vo.setWorkerPoolSize(DEFAULT_VERTX_WORKER_POOL_SIZE);
         vo.setFileResolverCachingEnabled(false);
-        Vertx vertx = Vertx.vertx(vo);
+        vertx = Vertx.vertx(vo);
         setRdbSQLClient(JDBCClient.createNonShared(vertx, clickhouseClientConfig));
     }
 
+    @Override
+    public void close() throws Exception {
+        super.close();
+        VertxUtils.synClose(vertx);
+    }
 }
